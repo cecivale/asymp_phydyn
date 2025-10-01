@@ -1,4 +1,4 @@
-# Asymptomatic SARS-CoV-2 Transmission in Swiss Armed Forces
+# Asymptomatic SARS-CoV-2 Phylodynamics
 
 This repository contains the code and scripts used for the analyses presented in the manuscript: *Mapping Asymptomatic Transmission with Viral Phylodynamics: Insights from a Nationwide SARS-CoV-2 Screening in Young Adults*. The study investigates asymptomatic SARS-CoV-2 infections and their transmission dynamics in a cohort of Swiss men aged 20–29 with phylodynamics, using Swiss Armed Forces (SAF) screening data and community surveillance sequences.
 
