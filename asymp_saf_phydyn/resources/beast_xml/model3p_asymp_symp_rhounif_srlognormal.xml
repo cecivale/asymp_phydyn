@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast namespace="beast.base.inference
+    :beast.base.inference.parameter
+    :beast.base.evolution.branchratemodel
+    :beast.base.evolution.substitutionmodel
+    :beast.base.evolution.sitemodel
+    :beast.base.evolution.tree.coalescent
+    :beast.base.evolution.tree
+    :beast.base.evolution.operator
+    :beast.base.evolution.likelihood
+    :beast.base.evolution.alignment
+    :beast.base.evolution.operator.kernel
+    :beast.base.inference.operator.kernel
+    :beast.base.inference.operator
+    :beast.base.inference.operator
+    :beast.base.math.distributions
+    :beast.base.evolution
+    :bdmmprime.util.operators
+    :bdmmprime.util.priors
+    :bdmmprime.distribution
+    :bdmmprime.parameterization
+    :bdmmprime.mapping
+    :feast
+    :feast.parameter
+    :feast.fileio
+    :feast.function
+    :feast.expressions
+    :glmprior.util"
+    required="" version="2.7">
+
+
+<!-- Map elements -->
+    <map name="Uniform" >beast.base.inference.distribution.Uniform</map>
+    <map name="Exponential" >beast.base.inference.distribution.Exponential</map>
+    <map name="LogNormal" >beast.base.inference.distribution.LogNormalDistributionModel</map>
+    <map name="Normal" >beast.base.inference.distribution.Normal</map>
+    <map name="Beta" >beast.base.inference.distribution.Beta</map>
+    <map name="Gamma" >beast.base.inference.distribution.Gamma</map>
+    <map name="LaplaceDistribution" >beast.base.inference.distribution.LaplaceDistribution</map>
+    <map name="prior" >beast.base.inference.distribution.Prior</map>
+    <map name="InverseGamma" >beast.base.inference.distribution.InverseGamma</map>
+    <map name="OneOnX" >beast.base.inference.distribution.OneOnX</map>
+
+
+<!-- Alignment -->
+    <alignment id="alignment" spec= "AlignmentFromFasta"
+        fileName = "$(aligned_fasta)"/>
+
+    <typeSet id="typeSetBDMMPrime" spec="TypeSet">
+        <typeTraitSet id="typeTraitSet" spec="TraitSetFromTaxonSet" 
+            traitname="type" 
+            delimiter="|" 
+            takeGroup="1"> 
+        <taxa spec="TaxonSet" alignment="@alignment"/>
+        </typeTraitSet>
+    </typeSet>
+
+    <trait id="dateTrait" spec="TraitSetFromTaxonSet" 
+           traitname="date" 
+           dateFormat="yyyy-M-dd" 
+           delimiter= "|" 
+           takeGroup="2">
+        <taxa spec="TaxonSet" alignment="@alignment"/>
+    </trait>
+
+    <function id="taxonTimes" spec="TraitSetAsFunction" traitSet="@dateTrait"/>
+
+
+ <!-- BDMMPrime Population Model -->
+
+    <birthRate id="birthRateSV" spec="SkylineVectorParameter" 
+               timesAreAges="true" processLength="@originBDMMPrime" typeSet="@typeSetBDMMPrime">
+        <skylineValues id="birthRateValues" spec="Interleave">
+            <arg id="birthRate_asymp" spec="RealParameterFromFunction" >
+                <function spec="ExpCalculator" value="birth_rate[1:(len(birthRateChangeTimes)+1)]">
+                    <arg id="birth_rate" spec="RealParameter" value="40.0"/>
+                    <arg idref="birthRateChangeTimes"/>
+                </function>
+            </arg>
+
+            <arg id="birthRate_symp" spec="ExpCalculator" value="birthRate_asymp*f_symp*(1/p_asymp -1)">
+                    <arg idref="birthRate_asymp"/>
+                    <arg idref="f_symp"/>
+                    <arg idref="p_asymp"/>
+            </arg>
+        </skylineValues>
+
+        <changeTimes id="birthRateChangeTimes" spec="TimeParameter" 
+            time="2021-01-18 2020-12-22 2020-11-06" 
+            mostRecentSampleTime="$(mrs)" timeFormat="yyyy-M-dd"/>
+    </birthRate>
+
+
+    <birthRateAmongDemes id="birthRateAmongDemesSM" spec="SkylineMatrixParameter"
+                  timesAreAges="true" processLength="@originBDMMPrime" 
+                  typeSet="@typeSetBDMMPrime">
+        <skylineValues id="birthRateAmongDemesValues" spec="Interleave">
+            <arg id="birthRate_asympsymp" spec="ExpCalculator" value="birthRate_asymp*(1/p_asymp -1)">
+                    <arg idref="birthRate_asymp"/>
+                    <arg idref="p_asymp"/>
+            </arg>
+            <arg id="birthRate_sympasymp" spec="ExpCalculator" value="birthRate_asymp*f_symp">
+                        <arg idref="birthRate_asymp"/>
+                        <arg idref="f_symp"/>
+            </arg>
+        </skylineValues>
+
+        <changeTimes id="birthRateAmongDemesChangeTimes" spec="TimeParameter" 
+            time="2021-01-18 2020-12-22 2020-11-06" 
+            mostRecentSampleTime="$(mrs)" timeFormat="yyyy-M-dd"/>
+    </birthRateAmongDemes> 
+
+    <samplingRate id="samplingRateSV" spec="SkylineVectorParameter" 
+                  timesAreAges="true" processLength="@originBDMMPrime" typeSet="@typeSetBDMMPrime">
+        <skylineValues idref="samplingRateValues"/>
+            
+        <changeTimes id="samplingRateChangeTimes" spec="RealParameterFromFunction">
+            <function spec="ExpCalculator" value="max(taxonTimes) + 0.01">
+                <arg idref="taxonTimes"/>
+            </function>
+        </changeTimes>
+    </samplingRate>
+
+    <rhoSampling id="rhoSamplingSV" spec="TimedParameter" 
+                 timesAreAges="true" processLength="@originBDMMPrime" typeSet="@typeSetBDMMPrime">
+        <values id="rhoSamplingValues" spec="Interleave">
+            <arg idref="rhoSampling_asymp"/>
+            <arg id="rhoSampling_symp" spec="RealParameter" value="0.0 0.0 0.0"/>
+        </values>
+
+        <times id="rhoSamplingTimes" spec="TimeParameter" estimate="false" 
+               time="$(screening_dates)"
+               mostRecentSampleTime="$(mrs)" 
+               timeFormat="yyyy-M-dd"/>
+    </rhoSampling>
+
+               <!-- time="2021-02-10 2021-01-20 2021-01-13" -->
+
+    <deathRate id="deathRateSV" spec="SkylineVectorParameter"  
+               timesAreAges="true" processLength="@originBDMMPrime"
+               typeSet="@typeSetBDMMPrime">
+        <skylineValues id="deathRateValues" spec="RealParameter" 
+                       dimension="2" value="$(death_rate)"/>
+    </deathRate>
+
+
+    <migrationRate id="migrationRateSM" spec="SkylineMatrixParameter"  
+               timesAreAges="true" processLength="@originBDMMPrime"
+               typeSet="@typeSetBDMMPrime">
+        <skylineValues id="migrationRateValues" spec="RealParameter"
+                       dimension="2" value="0.0 0.0"/>
+    </migrationRate>
+
+
+    <removalProb id="removalProbSV" spec="SkylineVectorParameter">
+        <skylineValues id="removalProbValues" spec="RealParameter" 
+                       dimension="2" value="1.0"/>
+    </removalProb>
+
+
+    <frequencies id="typeFrequencies" spec="RealParameter" 
+                 dimension="2" value="0.5 0.5" lower="0.0" upper="1.0"/>
+<!-- 
+    <theta id="birthRatetheta" spec="RealParameter" 
+                        value="1.0" lower="0" upper="5"/>
+ -->
+<!-- Site Model -->
+    <siteModel id="siteModel" spec="SiteModel" gammaCategoryCount="4">
+        <parameter id="gammaShape" name="shape" value="1.0"/>
+        <parameter name="mutationRate"  estimate="false" value="1.0"/>
+        <parameter name="proportionInvariant" estimate="false" value="0.0"/>
+
+        <substModel spec="HKY">
+            <kappa id="kappa" spec="RealParameter" value="2.0"/>
+            <frequencies id="empiricalFreqs" spec="Frequencies" data="@alignment"/>
+        </substModel>
+    </siteModel>
+
+
+<!-- Branch rate Model -->
+    <branchRateModel id="branchRateModel" spec="StrictClockModel">
+        <parameter id="clockRate" name="clock.rate"  estimate="false" value="8e-4"/>
+    </branchRateModel>
+
+
+<!-- Population Model for Tree initialiser -->
+    <popFunc id="popFunc" spec="ConstantPopulation">
+        <popSize spec="RealParameter" value="0.1"/>
+    </popFunc>
+
+
+<!-- MCMC -->
+    <run id="mcmc" spec="MCMC" sampleFromPrior='false' chainLength="$(chain_length)" numInitializationAttempts="100">
+
+    <!-- State -->
+<state id="state" spec="State" storeEvery="5000">
+            
+            <stateNode id="treeBDMMPrime" spec="RandomTree" 
+                       taxa="@alignment" 
+                       populationModel="@popFunc"
+                       trait="@dateTrait">
+            </stateNode>
+
+            <stateNode id="originBDMMPrime" spec="RealParameter" value="1.0"/>
+            <stateNode id="samplingRateValues" spec="RealParameter"  value="0 $(sr_mean) 0.0 0.0"/>
+            <stateNode id="rhoSampling_asymp" spec="RealParameter" value="$(rho3_mean) $(rho2_mean) $(rho1_mean)"/>
+            <stateNode idref="birthRate_asymp"/>
+            <stateNode id="f_symp" spec="RealParameter" value="2.0"/>
+            <stateNode id="p_asymp" spec="RealParameter" value="0.5"/>
+            <stateNode idref="typeFrequencies"/>
+
+            <stateNode idref="kappa"/>
+            <stateNode idref="gammaShape"/>
+
+        </state> 
+    
+
+    <!-- Posterior Distribution -->
+        <distribution id="posterior" spec="CompoundDistribution">
+
+             <!-- Tree Likelihood -->
+            <distribution id="likelihood" spec="CompoundDistribution" useThreads="true">
+                
+                <distribution id="treeLikelihood" spec="ThreadedTreeLikelihood" 
+                              data="@alignment" 
+                              tree="@treeBDMMPrime"
+                              siteModel="@siteModel"
+                              branchRateModel="@branchRateModel"/>
+                    
+            </distribution>
+
+            <!-- Prior distribution -->
+            <distribution id="prior" spec="CompoundDistribution">
+
+                <!-- BDMM-Prime tree prior distribution -->
+                <distribution id="BDMMPrime" spec="BirthDeathMigrationDistribution" 
+                              tree="@treeBDMMPrime"
+                              conditionOnSurvival="true"
+                              finalSampleOffset="0.0"
+                              typeTraitSet="@typeTraitSet"
+                              frequencies="@typeFrequencies"
+                              useAnalyticalSingleTypeSolution="false">
+
+                    <!-- Parameterization BDMM-Prime -->
+                    <parameterization id="BDMMPrimeParameterization" spec="CanonicalParameterization" 
+                                      processLength="@originBDMMPrime"
+                                      birthRate="@birthRateSV"
+                                      samplingRate="@samplingRateSV"
+                                      rhoSampling="@rhoSamplingSV"
+                                      deathRate="@deathRateSV"
+                                      birthRateAmongDemes="@birthRateAmongDemesSM"
+                                      migrationRate="@migrationRateSM"
+                                      removalProb="@removalProbSV"
+                                      typeSet="@typeSetBDMMPrime"/>
+
+                </distribution> 
+
+
+            <!-- Priors on parameters -->
+            <!-- BDMMPrime parameters priors -->
+
+                <prior id="originBDMMPrimePrior" name="distribution" x="@originBDMMPrime">
+                    <LogNormal name="distr" M="-0.6" S="0.3"/> 
+                </prior>
+
+                <!-- Sampling rate Prior -->
+                <distribution id="samplingRatePrior" spec="SmartZeroExcludingPrior" 
+                            x="@samplingRateValues">
+                    <LogNormal name="distr" M="$(sr_mean)" S="0.2" meanInRealSpace="true"/> 
+                </distribution>
+
+
+                <!-- Rho sampling Prior -->
+                <distribution id="rhoSamplingPrior" spec="ZeroExcludingPrior" x="@rhoSampling_asymp">
+                    <Uniform name="distr" upper="$(rho_upper)" lower="$(rho_lower)"/>
+                </distribution>
+
+                <prior id="birthRatePrior" name="distribution" x="@birthRate_asymp">
+                    <LogNormal name="distr" M="$(death_rate)" S="0.8" meanInRealSpace="true"/> 
+                </prior> 
+
+                <prior id="f_sympPrior" name="distribution" x="@f_symp">
+                    <LogNormal name="distr" M="0.0" S="1.0"/>
+                </prior>
+
+                <prior id="p_asympPrior" name="distribution" x="@p_asymp">
+                    <Uniform name="distr" upper="1.0" lower="0.0"/>
+                </prior>
+
+
+            <!-- Substitution model parameter priors -->
+                <prior id="GammaShapePrior" name="distribution" x="@gammaShape">
+                    <Exponential name="distr" mean="0.5"/>
+                </prior>
+
+                <prior id="KappaPrior" name="distribution" x="@kappa">
+                    <LogNormal name="distr" M="1.0" S="1.25"/> 
+                </prior>
+
+            </distribution>
+        </distribution>
+
+
+    <!-- Operators -->
+        <!-- Tree operators -->
+        <operator id="BDMMPrimeTreeRootScaler" spec="ScaleOperator" tree="@treeBDMMPrime" 
+            rootOnly="true" scaleFactor="0.25"  weight="5.0"/>
+
+        <operator id="BDMMPrimeUniformOperator" spec="BactrianNodeOperator" tree="@treeBDMMPrime" 
+            weight="30.0"/>
+
+        <operator id="BDMMPrimeSubtreeSlideScaler" spec="BactrianSubtreeSlide" tree="@treeBDMMPrime" 
+            weight="15.0"/>
+
+        <operator id="BDMMPrimeNarrow" spec="Exchange" tree="@treeBDMMPrime" 
+            weight="15.0"/>
+
+        <operator id="BDMMPrimeWide" spec="Exchange" tree="@treeBDMMPrime" 
+            isNarrow="false" weight="3.0"/>
+
+        <operator id="BDMMPrimeWilsonBalding" spec="WilsonBalding" tree="@treeBDMMPrime" 
+            weight="3.0"/>
+
+        <operator id="BDMMPrimeBICEPSEpochTop" spec="EpochFlexOperator" tree="@treeBDMMPrime" 
+            scaleFactor="0.1" weight="2.0"/>
+
+        <operator id="BDMMPrimeBICEPSEpochAll" spec="EpochFlexOperator" tree="@treeBDMMPrime" 
+            fromOldestTipOnly="false" scaleFactor="0.1" weight="2.0"/>
+
+        <operator id="BDMMPrimeBICEPSTreeFlex" spec="TreeStretchOperator" tree="@treeBDMMPrime" 
+            scaleFactor="0.01" weight="2.0"/>
+
+
+        <!-- Population model operators -->
+        <operator id="originBDMMPrimeScaler" spec="ScaleOperator" parameter="@originBDMMPrime" 
+            scaleFactor="0.25" weight="5.0" />
+
+        <operator id="birthRateScaler" spec="ScaleOperator" parameter="@birthRate_asymp" 
+            weight="10.0" />
+        <operator id="birthRateScalerAll" spec="ScaleOperator" parameter="@birthRate_asymp"    weight="10.0" scaleAll="true" />
+
+        <!-- <operator id="birthRatethetaScaler" spec="ScaleOperator" parameter="@birthRatetheta" weight="3.0" /> -->
+
+        <operator id="samplingRateScaler" spec="ScaleOperator" parameter="@samplingRateValues" 
+            weight="5.0" />
+
+        <operator id="rhoSamplingScaler" spec="ScaleOperator" parameter="@rhoSampling_asymp" scaleFactor="0.75" weight="5.0"/>
+
+        <operator id="f_Scaler" spec="ScaleOperator" parameter="@f_symp" 
+            weight="20.0" />
+
+        <operator id="p_Scaler" spec="ScaleOperator" parameter="@p_asymp" 
+            weight="20.0" />
+
+         <operator id="AVNMOperator" spec="beast.base.evolution.operator.kernel.AdaptableVarianceMultivariateNormalOperator" weight="5.0"
+            coefficient="1.0"
+            scaleFactor="0.5"
+            beta="0.05"
+            initial="800"
+            burnin="400"
+            every="1"> 
+            <transformations spec="beast.base.inference.operator.kernel.Transform$LogTransform">
+                <f idref="f_symp"/>
+            </transformations>
+            <transformations spec="beast.base.inference.operator.kernel.Transform$LogTransform">
+                <f idref="p_asymp"/>
+            </transformations>
+            <transformations spec="beast.base.inference.operator.kernel.Transform$LogTransform">
+                <f idref="rhoSampling_asymp"/>
+            </transformations>
+            <transformations spec="beast.base.inference.operator.kernel.Transform$LogTransform">
+                <f idref="samplingRateValues"/>
+            </transformations>
+            <transformations spec="beast.base.inference.operator.kernel.Transform$LogTransform">
+                <f idref="birthRate_asymp"/>
+            </transformations>
+        </operator>
+
+        <operator id="typeFrequenciesExchange" spec="DeltaExchangeOperator" parameter="@typeFrequencies" delta="0.1" weight="1.0"/>
+
+        <!-- Substitution model operators -->
+        <operator id="gammaShapeScaler" spec="ScaleOperator" parameter="@gammaShape" 
+             weight="1.0"/>
+
+        <operator id="KappaScaler" spec="ScaleOperator" parameter="@kappa" 
+             weight="1.0"/>
+
+
+    <!-- Loggers -->
+        <logger id="tracelog" spec="Logger" fileName="$(file_name).log" logEvery="$(log_every)" model="@posterior" sanitiseHeaders="true" sort="smart">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+            <log idref="gammaShape"/>   
+            <log idref="kappa"/>
+
+            <log id="TreeHeight" spec="TreeHeightLogger" tree="@treeBDMMPrime"/>
+
+            <log idref="originBDMMPrime"/>
+            <log idref="birthRateSV"/>
+            <log idref="birthRateAmongDemesSM"/>
+            <!-- <log idref="birthRatetheta"/> -->
+            <log idref="f_symp"/>
+            <log idref="p_asymp"/>
+            <log idref="deathRateSV"/>
+            <log idref="samplingRateSV"/>
+            <log idref="rhoSamplingSV"/>
+            <log idref="migrationRateSM"/>
+            <log idref="removalProbSV"/>
+            <log idref="typeFrequencies"/>
+        </logger>
+
+        <logger id="screenlog" spec="Logger" logEvery="$(log_every)">
+            <log idref="posterior"/>
+            <log arg="@posterior" id="ESS_posterior" spec="util.ESS"/>
+            <log idref="likelihood"/>
+            <log arg="@likelihood" id="ESS_likelihood" spec="util.ESS"/>
+            <log idref="prior"/>
+            <log arg="@prior" id="ESS_prior" spec="util.ESS"/>
+            <log idref="BDMMPrime"/>
+            <log arg="@BDMMPrime" id="ESS_BDMMPrime" spec="util.ESS"/>
+        </logger>
+
+        <logger id="treelog" spec="Logger" fileName="$(file_name).trees" logEvery="$(log_every)" mode="tree">
+            <log id="TreeWithMetaDataLogger" spec="TreeWithMetaDataLogger" tree="@treeBDMMPrime"/>
+        </logger>
+
+        <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
+
+    </run>
+
+</beast>

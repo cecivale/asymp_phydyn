@@ -1,0 +1,26 @@
+BE Bern
+LU Lucerne
+UR Uri
+SZ Schwyz
+OW Obwalden
+NW Nidwalden
+GL Glarus
+ZG Zug
+FR Fribourg
+SO Solothurn
+BS Basel-Stadt
+BL Basel-Land 
+SH Schaffhausen
+AR Appenzell A. Rh.
+AI Appenzell I. Rh.
+SG Sankt Gallen
+GR Graubünden
+AG Aargau
+TG Thurgau
+TI Ticino
+VD Vaud
+VS Valais
+NE Neuchâtel
+GE Geneva
+JU Jura
+ZH Zürich

@@ -1,0 +1,264 @@
+# ------------------------------------------------------------------------------
+#          ---        
+#        / o o \    Project:  cov-armee Phylodynamics
+#        V\ Y /V    Snakemake workflow Asymptomatic phylodynamic analysis
+#    (\   / - \     
+#     )) /    |     
+#     ((/__) ||     Code by Ceci VA 
+# ------------------------------------------------------------------------------
+
+
+import pandas as pd
+
+configfile: "config/config.yaml" 
+configfile: "config/datasets.yaml" 
+configfile: "config/analyses.yaml" 
+
+wildcard_constraints:
+    dataset="[A-Za-z0-9_]+",
+    analysis="[A-Za-z0-9_]+",
+    sufix="[.][0-9]|[^$]",
+
+# As input of this workflow, we take several external datasets from FOPH, an internal database
+# with the asymptomatic/symptomatic metadata and a .tsv file with the dates of the screening weeks.
+
+rule load_ext_data:
+    message:
+        """
+        Load and save external datasets from urls
+        """
+    output:
+        dataset = "resources/ext_{ext_data}.tsv"
+    params:
+        url =  lambda wildcards: config["external_data"][wildcards.ext_data],
+    run:
+        try:
+            df = pd.read_csv(params.url)
+            df.to_csv(output.dataset, sep="\t")
+        except:
+            print("Reading from url {} failed for {}.".format(params.url, wildcards.ext_data))
+
+rule load_metadata: # from database vineyard and LAPIS
+    message:
+        """
+        Load from database Vineyard and LAPIS-open metadata and ids
+        """
+    output:
+        metadata = "results/data/all/metadata.tsv"
+    log:
+        "logs/load_metadata.log"
+    # params:
+    #     db_config = "config/df_config.yaml"
+    # script:
+    #     "scripts/load_data_vineyard.R"
+
+
+rule deconvolve_active_infections:
+    message:
+        """
+        Estimate active infections by deconvolution of reported cases during screening weeks
+        """
+    input:
+        screening_weeks = "resources/screening_weeks.tsv",
+        cases_byage_d = "resources/ext_cases_byage_d.tsv",
+        tests_bysex_w = "resources/ext_tests_bysex_w.tsv"
+    output:
+        active_infections = "results/report/active_infections.tsv",
+    script:
+        "scripts/estimateR_infections.R"
+
+
+rule descriptive_numbers:
+    message:
+        """
+        Get descriptive numbers of dataset
+        """
+    input:
+        metadata = "results/data/all/metadata.tsv",
+        active_infections = rules.deconvolve_active_infections.output.active_infections,
+        screening_weeks = "resources/screening_weeks.tsv",
+        population = "resources/ext_population.tsv",
+        tests_byage_w = "resources/ext_tests_byage_w.tsv",
+        tests_bysex_w = "resources/ext_tests_bysex_w.tsv",
+        cases_byage_d = "resources/ext_cases_byage_d.tsv",
+        kof_stringencyidx = "resources/ext_kof_stringencyidx.csv",
+        covspectrum_alpha = "resources/AlphaVariantTimeDistributionPlot.csv"
+    output:
+        active_infections_w = "results/report/active_infections_w.tsv",
+        table1 = "results/report/numbers.tsv",
+        fig1 = "results/report/fig1_ggplot.pdf"
+    params:
+        db_config = "config/df_config.yaml"
+    script:
+        "scripts/numbers.R"
+
+
+module snakemake_phylo_beast2: 
+    snakefile: "snakemake-phylo-beast2/workflow/Snakefile"
+    config: config
+
+use rule * from snakemake_phylo_beast2
+
+
+rule calculate_groups_subsample:
+    message:
+        """
+        Calculate number of sequences to subsample for each canton following case distribution
+        """
+    input:
+        cantons = "resources/cantons.txt",
+        cases = "resources/ext_cases_byage_d.tsv",
+        screening_weeks = "resources/screening_weeks.tsv",
+        metadata = snakemake_phylo_beast2.rules.select_samples.output.metadata,
+        ids = snakemake_phylo_beast2.rules.select_samples.output.ids
+    output:
+        groups = "results/data/{dataset}/{prefix,.*}groups.tsv",
+    log:
+        "logs/calculate_groups_subsample{dataset}_{prefix,.*}.log"
+    script:
+        "scripts/kanton_groups.R"
+
+
+rule estimate_sampling_probs:
+    message:
+        """
+        Estimate sampling probabilities for phylodynamic analysis
+        """
+    input:
+        ids = "results/data/{dataset}/ids_combined{sufix,.*}.tsv",
+        active_infections_d = "results/report/active_infections.tsv",
+        active_infections_w = "results/report/active_infections_w.tsv",
+    output:
+        sampling_details = "results/analysis/{analysis}/sampling_details/{dataset}{sufix,.*}.tsv",
+    params:
+        death_rate = lambda wildcards: snakemake_phylo_beast2._get_analysis_param(wildcards, "xml_params").get("death_rate")
+    script:
+        "scripts/estimate_sampling_probs.R"
+
+def _get_screening_dates(wildcards):
+    ids = pd.read_csv(snakemake_phylo_beast2._get_sequence_ids(wildcards), sep = '\t')
+    ids_screening = ids.query('deme == "asymp"')
+    dates = ids_screening['sample_id'].str.split("|", expand=True)[2]
+    screening_dates = list(set(dates))
+    screening_dates.sort(reverse = True)
+    screening_dates_str = " ".join(screening_dates)
+    return screening_dates_str
+
+use rule beast from snakemake_phylo_beast2 as beast with:
+    input:
+        alignment = lambda wildcards: snakemake_phylo_beast2._get_alignment(wildcards), 
+        xml = lambda wildcards: snakemake_phylo_beast2._get_analysis_param(wildcards, "xml"),
+        ids = lambda wildcards: snakemake_phylo_beast2._get_sequence_ids(wildcards),
+        sampling_details = rules.estimate_sampling_probs.output.sampling_details
+    params:
+        xml_params = lambda wildcards: str("mrs=" + snakemake_phylo_beast2._get_mrs(wildcards)) + "," + str("screening_dates='" + _get_screening_dates(wildcards)) + "',"  + str(snakemake_phylo_beast2._get_analysis_param(wildcards, "xml_params")).replace(":", "=").replace(
+            "{", "\"").replace("}", "\"").replace(" ", "").replace("'", "") + "," + str(pd.read_table("results/analysis/" + wildcards.analysis + "/sampling_details/" + wildcards.dataset + wildcards.sufix + ".tsv", 
+                sep = "\t").values.flatten().tolist()).replace("',", "'=").replace("]", "").replace("[", "").replace("'", "").replace(" ", ""),
+        beast_command = lambda wildcards: snakemake_phylo_beast2._get_analysis_param(wildcards, "command"), 
+        action = lambda wildcards: snakemake_phylo_beast2._get_run_param(wildcards, "action"),
+        user_check = lambda wildcards: snakemake_phylo_beast2._get_run_param(wildcards, "user_check"),
+        folder_name = "results/analysis/{analysis}/chains",
+        file_name = "{dataset}{sufix,.*}.{chain}.r{i}",
+        state_file = "{dataset}{sufix,.*}.{chain}.state",
+        previous_file_name = lambda wildcards: wildcards.dataset + wildcards.sufix + "." + wildcards.chain + ".r" + str(int(wildcards.i) - 1) if wildcards.i != 0 else wildcards.dataset + wildcards.sufix + wildcards.chain + ".r{i}"
+
+
+rule compare_posteriors:
+    message:
+        """
+        Compare posterior distributions across BEAST2 replicates and chains.
+        Outputs: supfig1 (heatmap), supfig2 (violin plots).
+        """
+    input:
+        inter = [
+            "results/analysis/{analysis}/{dataset}{sufix,.*}.0.log",
+            "results/analysis/{analysis}/{dataset}{sufix,.*}.1.log",
+            "results/analysis/{analysis}/{dataset}{sufix,.*}.2.log",
+            "results/analysis/{analysis}/{dataset}{sufix,.*}.3.log"
+        ],
+        # Chains from replicate 0
+        intra = [
+            "results/analysis/{analysis}/chains/{dataset}{sufix,.*}.0.1.log",
+            "results/analysis/{analysis}/chains/{dataset}{sufix,.*}.0.2.log",
+            "results/analysis/{analysis}/chains/{dataset}{sufix,.*}.0.3.log"
+        ],
+        # # Prior replicate (example: fbroad analysis, adjust as needed)
+        # fprior = [
+        #     "results/analysis/{analysis}_fbroad/{dataset,.*}{sufix,*}.0.log"
+        # ]
+    output:
+        supfig1 = "results/report/{analysis}/{dataset}{sufix,.*}_supfig1_ggplot.pdf",
+        supfig2 = "results/report/{analysis}/{dataset}{sufix,.*}_supfig2_ggplot.pdf"
+    params:
+        burnin = lambda wildcards: snakemake_phylo_beast2._get_analysis_param(wildcards, "burnin_frac"),
+    log:
+        "logs/compare_posteriors_{analysis}_{dataset}{sufix,.*}.log"
+    script:
+        "scripts/compare_distr.R"
+
+
+rule phydyn_plots:
+    message:
+        """
+        Parse BEAST traces and trees, generate main and supplementary figures
+        """
+    input:
+        trace    = "results/analysis/{analysis}/{dataset}{sufix,.*}.log",
+        ccdtree  = "results/analysis/{analysis}/{dataset}{sufix,.*}.CCD0.tree",
+        # mcctree  = "results/analysis/{analysis}/{dataset}{sufix,.*}.0.MCC.tree",
+        cases    = "resources/ext_re_cases.csv"
+    output:
+        output_fig   = "results/report/{analysis}/{dataset}{sufix,.*}_ggplot.pdf",
+        supfig3      = "results/report/{analysis}/{dataset}{sufix,.*}_suppfig_ggplot.pdf",
+        # tiptyped_tree = "results/analysis/{analysis}/{dataset}{sufix,.*}.0.CCD0.tiptyped.tree"
+    params:
+        burnin = lambda wildcards: snakemake_phylo_beast2._get_analysis_param(wildcards, "burnin_frac"),
+        mrs = lambda wildcards: snakemake_phylo_beast2._get_mrs(wildcards)
+    log:
+        "logs/phydyn_plots_{analysis}_{dataset}{sufix,.*}.log"
+    script:
+        "scripts/phydyn_results.R"
+
+
+rule viral_factors:
+    message:
+        """
+        Analyse viral lineages and clades from sequences
+        """
+    input:
+        metadata = "results/data/all/metadata.tsv",
+        screening_weeks = "resources/screening_weeks.tsv",
+    output:
+        table_lin = "results/report/table_lineages.tex"
+    script:
+        "scripts/viralfactors.R"
+
+
+
+output_files = []
+ANALYSES = config["run"].keys()
+for analysis in ANALYSES:
+    DATASETS = config["run"][analysis].get("dataset") # Include dataset define in analysis
+    for dataset in DATASETS:
+        DATA_SEED = ["." + str(i) for i in range(0, config["datasets"][dataset].get("replicates", 0))] or ""
+        FILE_TYPE = config["target_files"]
+        files = expand("results/report/" + analysis + "/" + dataset + "_supfig1_ggplot.pdf", 
+            dseed = DATA_SEED, filetype = FILE_TYPE)
+        files += expand("results/report/" + analysis + "/" + dataset + "_supfig2_ggplot.pdf", 
+            dseed = DATA_SEED, filetype = FILE_TYPE)
+        files += expand("results/report/" + analysis + "/" + dataset +  "{dseed}_ggplot.pdf", 
+            dseed = DATA_SEED, filetype = FILE_TYPE)
+        files += expand("results/report/" + analysis + "/" + dataset + "{dseed}_suppfig_ggplot.pdf", 
+            dseed = DATA_SEED, filetype = FILE_TYPE)
+        output_files += files
+
+
+rule all_of_all:
+    input:
+        rules.all.input,
+        "results/report/numbers.tsv",
+        "results/report/table_lineages.tex",
+        output_files
+    default_target: True
+
+

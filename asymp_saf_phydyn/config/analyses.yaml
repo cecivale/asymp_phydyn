@@ -1,0 +1,9 @@
+analyses:
+
+  phydyn_asymp_symp_3p_srln:
+    xml: "resources/beast_xml/model3p_asymp_symp_rhounif_srlognormal.xml"
+    types_xml: "resources/beast_xml/model3p_asymp_symp_trajectoryMapper.xml"
+    xml_params:
+      chain_length: 20000000
+      log_every: 2000
+      death_rate: 36.5

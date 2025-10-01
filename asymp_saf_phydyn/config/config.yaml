@@ -1,0 +1,64 @@
+# ------------------------------------------------------------------------------
+#          ---        
+#        / o o \    Project:  cov-armee
+#        V\ Y /V    Config file SARS-CoV-2 asymp army analysis 
+#    (\   / - \     
+#     )) /    |     
+#     ((/__) ||     Code by Ceci VA 
+# ------------------------------------------------------------------------------
+
+
+run: # analysis name: - dataset name
+
+  phydyn_asymp_symp_3p_srln:
+    dataset: ["asymp_symp200_male2029"]
+    user_check: FALSE
+    action: "overwrite"
+
+target_files: ["log", "trees", "MCC.tree", "CCD0.tree"]
+
+
+config_datasets: "config/datasets.yaml"
+config_analyses: "config/analyses.yaml"
+
+external_data:
+  cases_byage_d: "https://www.covid19.admin.ch/api/data/20230620-f9gkf78p/sources/COVID19CasesRawData_AKL10_d.csv"
+  tests_byage_w: "https://www.covid19.admin.ch/api/data/20231003-on9fipwb/sources/COVID19Test_geoRegion_AKL10_w.csv "
+  tests_bysex_w: "https://www.covid19.admin.ch/api/data/20231003-on9fipwb/sources/COVID19Test_geoRegion_sex_w.csv"
+  population: "https://www.covid19.admin.ch/api/data/20230627-neqmafky/sources/PopulationAgeRangeSexData.csv"
+  re_cases: "https://raw.githubusercontent.com/covid-19-Re/dailyRe-Data/master/CHE-estimates.csv"
+  kof_stringencyidx: "https://datenservice.kof.ethz.ch/api/v1/public/sets/stringency_plus_web?mime=csv&df=Y-m-d"
+
+lapis:
+  seq_id: "genbankAccession" 
+  database: "open" # gisaid or open
+  batch_size: 50
+  access_key: "LAPIS_ACCESS_KEY"
+  
+align:
+  parameters: 
+
+mask:
+  mask_from_beginning: 100
+  mask_from_end: 200
+  mask_sites: [21846, 21987, 22992, 23012, 23063, 23604, 24410]
+
+beast:
+  command: "$JAVA -jar resources/BDMM-Prime-rho.jar"
+  user_check: FALSE
+  time: 7200
+  mem_mb: 4096
+  threads: 2
+  burnin: 10
+  burnin_frac: 0.1
+  chains: 1
+
+logcombiner:
+  command:  "$JAVA -cp resources/BDMM-Prime-rho.jar beast.pkgmgmt.launcher.LogCombinerLauncher "
+  resample: 10000
+
+treeannotator:
+  command:  "treeannotator"
+  heights: "median"
+
+

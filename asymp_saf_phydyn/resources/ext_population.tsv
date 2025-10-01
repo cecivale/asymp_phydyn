@@ -1,0 +1,523 @@
+	geoRegion	ageRange	sex	pop
+0	AG	0 - 9	male	37964
+1	AG	0 - 9	female	35471
+2	AG	10 - 19	male	35906
+3	AG	10 - 19	female	33620
+4	AG	20 - 29	male	41074
+5	AG	20 - 29	female	38704
+6	AG	30 - 39	male	51241
+7	AG	30 - 39	female	49159
+8	AG	40 - 49	male	49366
+9	AG	40 - 49	female	47459
+10	AG	50 - 59	male	54645
+11	AG	50 - 59	female	52887
+12	AG	60 - 69	male	41499
+13	AG	60 - 69	female	42187
+14	AG	70 - 79	male	28125
+15	AG	70 - 79	female	30301
+16	AG	80+	male	13613
+17	AG	80+	female	19865
+18	AI	0 - 9	male	882
+19	AI	0 - 9	female	869
+20	AI	10 - 19	male	864
+21	AI	10 - 19	female	802
+22	AI	20 - 29	male	1075
+23	AI	20 - 29	female	935
+24	AI	30 - 39	male	1101
+25	AI	30 - 39	female	983
+26	AI	40 - 49	male	997
+27	AI	40 - 49	female	933
+28	AI	50 - 59	male	1250
+29	AI	50 - 59	female	1234
+30	AI	60 - 69	male	1080
+31	AI	60 - 69	female	945
+32	AI	70 - 79	male	740
+33	AI	70 - 79	female	693
+34	AI	80+	male	400
+35	AI	80+	female	577
+36	AR	0 - 9	male	3073
+37	AR	0 - 9	female	2929
+38	AR	10 - 19	male	2745
+39	AR	10 - 19	female	2566
+40	AR	20 - 29	male	3192
+41	AR	20 - 29	female	2687
+42	AR	30 - 39	male	3651
+43	AR	30 - 39	female	3530
+44	AR	40 - 49	male	3609
+45	AR	40 - 49	female	3483
+46	AR	50 - 59	male	4310
+47	AR	50 - 59	female	4306
+48	AR	60 - 69	male	3715
+49	AR	60 - 69	female	3657
+50	AR	70 - 79	male	2504
+51	AR	70 - 79	female	2546
+52	AR	80+	male	1194
+53	AR	80+	female	1888
+54	BE	0 - 9	male	52391
+55	BE	0 - 9	female	49515
+56	BE	10 - 19	male	50088
+57	BE	10 - 19	female	47750
+58	BE	20 - 29	male	58500
+59	BE	20 - 29	female	56907
+60	BE	30 - 39	male	71616
+61	BE	30 - 39	female	71749
+62	BE	40 - 49	male	68711
+63	BE	40 - 49	female	68687
+64	BE	50 - 59	male	77590
+65	BE	50 - 59	female	77875
+66	BE	60 - 69	male	63213
+67	BE	60 - 69	female	66347
+68	BE	70 - 79	male	48175
+69	BE	70 - 79	female	54709
+70	BE	80+	male	24325
+71	BE	80+	female	39325
+72	BL	0 - 9	male	14379
+73	BL	0 - 9	female	13504
+74	BL	10 - 19	male	14606
+75	BL	10 - 19	female	13778
+76	BL	20 - 29	male	15403
+77	BL	20 - 29	female	14602
+78	BL	30 - 39	male	17810
+79	BL	30 - 39	female	18099
+80	BL	40 - 49	male	19151
+81	BL	40 - 49	female	19635
+82	BL	50 - 59	male	22574
+83	BL	50 - 59	female	23127
+84	BL	60 - 69	male	17893
+85	BL	60 - 69	female	18543
+86	BL	70 - 79	male	13652
+87	BL	70 - 79	female	15886
+88	BL	80+	male	8170
+89	BL	80+	female	12005
+90	BS	0 - 9	male	9527
+91	BS	0 - 9	female	8983
+92	BS	10 - 19	male	8123
+93	BS	10 - 19	female	7704
+94	BS	20 - 29	male	11448
+95	BS	20 - 29	female	11676
+96	BS	30 - 39	male	16647
+97	BS	30 - 39	female	16808
+98	BS	40 - 49	male	14052
+99	BS	40 - 49	female	13575
+100	BS	50 - 59	male	13464
+101	BS	50 - 59	female	13383
+102	BS	60 - 69	male	10387
+103	BS	60 - 69	female	11029
+104	BS	70 - 79	male	7192
+105	BS	70 - 79	female	8909
+106	BS	80+	male	4566
+107	BS	80+	female	8563
+108	FR	0 - 9	male	18711
+109	FR	0 - 9	female	17421
+110	FR	10 - 19	male	18446
+111	FR	10 - 19	female	17714
+112	FR	20 - 29	male	21962
+113	FR	20 - 29	female	20945
+114	FR	30 - 39	male	23578
+115	FR	30 - 39	female	22969
+116	FR	40 - 49	male	22789
+117	FR	40 - 49	female	22620
+118	FR	50 - 59	male	24579
+119	FR	50 - 59	female	24246
+120	FR	60 - 69	male	17611
+121	FR	60 - 69	female	17618
+122	FR	70 - 79	male	12013
+123	FR	70 - 79	female	13056
+124	FR	80+	male	5369
+125	FR	80+	female	8162
+126	GE	0 - 9	male	27443
+127	GE	0 - 9	female	26031
+128	GE	10 - 19	male	27492
+129	GE	10 - 19	female	26412
+130	GE	20 - 29	male	32072
+131	GE	20 - 29	female	32067
+132	GE	30 - 39	male	37538
+133	GE	30 - 39	female	38745
+134	GE	40 - 49	male	37654
+135	GE	40 - 49	female	39380
+136	GE	50 - 59	male	35394
+137	GE	50 - 59	female	37084
+138	GE	60 - 69	male	23564
+139	GE	60 - 69	female	25358
+140	GE	70 - 79	male	15856
+141	GE	70 - 79	female	20849
+142	GE	80+	male	9905
+143	GE	80+	female	16604
+144	GL	0 - 9	male	2043
+145	GL	0 - 9	female	2019
+146	GL	10 - 19	male	1967
+147	GL	10 - 19	female	1860
+148	GL	20 - 29	male	2488
+149	GL	20 - 29	female	2210
+150	GL	30 - 39	male	3031
+151	GL	30 - 39	female	2662
+152	GL	40 - 49	male	2751
+153	GL	40 - 49	female	2577
+154	GL	50 - 59	male	3132
+155	GL	50 - 59	female	3031
+156	GL	60 - 69	male	2687
+157	GL	60 - 69	female	2615
+158	GL	70 - 79	male	1823
+159	GL	70 - 79	female	1972
+160	GL	80+	male	890
+161	GL	80+	female	1432
+162	GR	0 - 9	male	9098
+163	GR	0 - 9	female	8520
+164	GR	10 - 19	male	9099
+165	GR	10 - 19	female	8531
+166	GR	20 - 29	male	11746
+167	GR	20 - 29	female	10712
+168	GR	30 - 39	male	13450
+169	GR	30 - 39	female	12670
+170	GR	40 - 49	male	13237
+171	GR	40 - 49	female	12838
+172	GR	50 - 59	male	16162
+173	GR	50 - 59	female	15612
+174	GR	60 - 69	male	13447
+175	GR	60 - 69	female	13522
+176	GR	70 - 79	male	9871
+177	GR	70 - 79	female	10590
+178	GR	80+	male	4935
+179	GR	80+	female	7336
+180	JU	0 - 9	male	3758
+181	JU	0 - 9	female	3548
+182	JU	10 - 19	male	4052
+183	JU	10 - 19	female	3802
+184	JU	20 - 29	male	4717
+185	JU	20 - 29	female	4232
+186	JU	30 - 39	male	4487
+187	JU	30 - 39	female	4339
+188	JU	40 - 49	male	4421
+189	JU	40 - 49	female	4571
+190	JU	50 - 59	male	5369
+191	JU	50 - 59	female	5473
+192	JU	60 - 69	male	4568
+193	JU	60 - 69	female	4752
+194	JU	70 - 79	male	3455
+195	JU	70 - 79	female	3795
+196	JU	80+	male	1695
+197	JU	80+	female	2764
+198	LU	0 - 9	male	22550
+199	LU	0 - 9	female	21185
+200	LU	10 - 19	male	21388
+201	LU	10 - 19	female	20091
+202	LU	20 - 29	male	26684
+203	LU	20 - 29	female	25639
+204	LU	30 - 39	male	30968
+205	LU	30 - 39	female	30186
+206	LU	40 - 49	male	28067
+207	LU	40 - 49	female	27702
+208	LU	50 - 59	male	31281
+209	LU	50 - 59	female	30837
+210	LU	60 - 69	male	23924
+211	LU	60 - 69	female	24184
+212	LU	70 - 79	male	15979
+213	LU	70 - 79	female	17606
+214	LU	80+	male	8624
+215	LU	80+	female	13431
+216	NE	0 - 9	male	8892
+217	NE	0 - 9	female	8372
+218	NE	10 - 19	male	9821
+219	NE	10 - 19	female	9262
+220	NE	20 - 29	male	11271
+221	NE	20 - 29	female	10570
+222	NE	30 - 39	male	11622
+223	NE	30 - 39	female	11537
+224	NE	40 - 49	male	11840
+225	NE	40 - 49	female	12116
+226	NE	50 - 59	male	12847
+227	NE	50 - 59	female	12917
+228	NE	60 - 69	male	9296
+229	NE	60 - 69	female	9913
+230	NE	70 - 79	male	7063
+231	NE	70 - 79	female	8464
+232	NE	80+	male	3742
+233	NE	80+	female	6621
+234	NW	0 - 9	male	2052
+235	NW	0 - 9	female	1862
+236	NW	10 - 19	male	2074
+237	NW	10 - 19	female	1872
+238	NW	20 - 29	male	2455
+239	NW	20 - 29	female	2178
+240	NW	30 - 39	male	2949
+241	NW	30 - 39	female	2693
+242	NW	40 - 49	male	2836
+243	NW	40 - 49	female	2777
+244	NW	50 - 59	male	3720
+245	NW	50 - 59	female	3553
+246	NW	60 - 69	male	3143
+247	NW	60 - 69	female	2904
+248	NW	70 - 79	male	2250
+249	NW	70 - 79	female	2211
+250	NW	80+	male	1009
+251	NW	80+	female	1356
+252	OW	0 - 9	male	1949
+253	OW	0 - 9	female	1876
+254	OW	10 - 19	male	1922
+255	OW	10 - 19	female	1865
+256	OW	20 - 29	male	2180
+257	OW	20 - 29	female	2019
+258	OW	30 - 39	male	2554
+259	OW	30 - 39	female	2481
+260	OW	40 - 49	male	2580
+261	OW	40 - 49	female	2444
+262	OW	50 - 59	male	3117
+263	OW	50 - 59	female	3004
+264	OW	60 - 69	male	2545
+265	OW	60 - 69	female	2401
+266	OW	70 - 79	male	1770
+267	OW	70 - 79	female	1734
+268	OW	80+	male	837
+269	OW	80+	female	1157
+270	SG	0 - 9	male	27782
+271	SG	0 - 9	female	26258
+272	SG	10 - 19	male	26802
+273	SG	10 - 19	female	25430
+274	SG	20 - 29	male	33882
+275	SG	20 - 29	female	31088
+276	SG	30 - 39	male	38171
+277	SG	30 - 39	female	35482
+278	SG	40 - 49	male	34122
+279	SG	40 - 49	female	32642
+280	SG	50 - 59	male	38562
+281	SG	50 - 59	female	37837
+282	SG	60 - 69	male	29789
+283	SG	60 - 69	female	30600
+284	SG	70 - 79	male	21014
+285	SG	70 - 79	female	23064
+286	SG	80+	male	10527
+287	SG	80+	female	16193
+288	SH	0 - 9	male	4149
+289	SH	0 - 9	female	3901
+290	SH	10 - 19	male	3983
+291	SH	10 - 19	female	3798
+292	SH	20 - 29	male	4918
+293	SH	20 - 29	female	4432
+294	SH	30 - 39	male	5715
+295	SH	30 - 39	female	5491
+296	SH	40 - 49	male	5480
+297	SH	40 - 49	female	5266
+298	SH	50 - 59	male	6211
+299	SH	50 - 59	female	6333
+300	SH	60 - 69	male	5317
+301	SH	60 - 69	female	5547
+302	SH	70 - 79	male	3736
+303	SH	70 - 79	female	4317
+304	SH	80+	male	2099
+305	SH	80+	female	3302
+306	SO	0 - 9	male	14124
+307	SO	0 - 9	female	13472
+308	SO	10 - 19	male	13443
+309	SO	10 - 19	female	12583
+310	SO	20 - 29	male	16258
+311	SO	20 - 29	female	15283
+312	SO	30 - 39	male	19579
+313	SO	30 - 39	female	18973
+314	SO	40 - 49	male	18230
+315	SO	40 - 49	female	17742
+316	SO	50 - 59	male	21976
+317	SO	50 - 59	female	21585
+318	SO	60 - 69	male	18046
+319	SO	60 - 69	female	18059
+320	SO	70 - 79	male	12247
+321	SO	70 - 79	female	13008
+322	SO	80+	male	6144
+323	SO	80+	female	9493
+324	SZ	0 - 9	male	8279
+325	SZ	0 - 9	female	7759
+326	SZ	10 - 19	male	7899
+327	SZ	10 - 19	female	7463
+328	SZ	20 - 29	male	9465
+329	SZ	20 - 29	female	8615
+330	SZ	30 - 39	male	11512
+331	SZ	30 - 39	female	10725
+332	SZ	40 - 49	male	11747
+333	SZ	40 - 49	female	10984
+334	SZ	50 - 59	male	14295
+335	SZ	50 - 59	female	12845
+336	SZ	60 - 69	male	10687
+337	SZ	60 - 69	female	9757
+338	SZ	70 - 79	male	6858
+339	SZ	70 - 79	female	6854
+340	SZ	80+	male	3319
+341	SZ	80+	female	4626
+342	TG	0 - 9	male	15577
+343	TG	0 - 9	female	14559
+344	TG	10 - 19	male	14369
+345	TG	10 - 19	female	13496
+346	TG	20 - 29	male	16956
+347	TG	20 - 29	female	15751
+348	TG	30 - 39	male	21066
+349	TG	30 - 39	female	19644
+350	TG	40 - 49	male	19112
+351	TG	40 - 49	female	18101
+352	TG	50 - 59	male	22387
+353	TG	50 - 59	female	22267
+354	TG	60 - 69	male	17691
+355	TG	60 - 69	female	17560
+356	TG	70 - 79	male	11484
+357	TG	70 - 79	female	12153
+358	TG	80+	male	5505
+359	TG	80+	female	8286
+360	TI	0 - 9	male	14531
+361	TI	0 - 9	female	13945
+362	TI	10 - 19	male	17410
+363	TI	10 - 19	female	16470
+364	TI	20 - 29	male	19245
+365	TI	20 - 29	female	18071
+366	TI	30 - 39	male	19961
+367	TI	30 - 39	female	19820
+368	TI	40 - 49	male	23463
+369	TI	40 - 49	female	24827
+370	TI	50 - 59	male	29184
+371	TI	50 - 59	female	29324
+372	TI	60 - 69	male	21063
+373	TI	60 - 69	female	22413
+374	TI	70 - 79	male	16573
+375	TI	70 - 79	female	19605
+376	TI	80+	male	10019
+377	TI	80+	female	16257
+378	UR	0 - 9	male	1818
+379	UR	0 - 9	female	1796
+380	UR	10 - 19	male	1965
+381	UR	10 - 19	female	1787
+382	UR	20 - 29	male	2293
+383	UR	20 - 29	female	2040
+384	UR	30 - 39	male	2393
+385	UR	30 - 39	female	2244
+386	UR	40 - 49	male	2401
+387	UR	40 - 49	female	2283
+388	UR	50 - 59	male	2830
+389	UR	50 - 59	female	2697
+390	UR	60 - 69	male	2477
+391	UR	60 - 69	female	2301
+392	UR	70 - 79	male	1785
+393	UR	70 - 79	female	1810
+394	UR	80+	male	882
+395	UR	80+	female	1245
+396	VD	0 - 9	male	45014
+397	VD	0 - 9	female	42901
+398	VD	10 - 19	male	47199
+399	VD	10 - 19	female	44675
+400	VD	20 - 29	male	54468
+401	VD	20 - 29	female	51792
+402	VD	30 - 39	male	60248
+403	VD	30 - 39	female	60253
+404	VD	40 - 49	male	58482
+405	VD	40 - 49	female	59930
+406	VD	50 - 59	male	57488
+407	VD	50 - 59	female	58449
+408	VD	60 - 69	male	38959
+409	VD	60 - 69	female	41388
+410	VD	70 - 79	male	27740
+411	VD	70 - 79	female	34482
+412	VD	80+	male	14713
+413	VD	80+	female	24787
+414	VS	0 - 9	male	17220
+415	VS	0 - 9	female	16560
+416	VS	10 - 19	male	17813
+417	VS	10 - 19	female	16821
+418	VS	20 - 29	male	21812
+419	VS	20 - 29	female	20672
+420	VS	30 - 39	male	24417
+421	VS	30 - 39	female	23436
+422	VS	40 - 49	male	23397
+423	VS	40 - 49	female	22768
+424	VS	50 - 59	male	26536
+425	VS	50 - 59	female	26480
+426	VS	60 - 69	male	21008
+427	VS	60 - 69	female	21891
+428	VS	70 - 79	male	15738
+429	VS	70 - 79	female	17719
+430	VS	80+	male	7534
+431	VS	80+	female	11387
+432	ZG	0 - 9	male	6820
+433	ZG	0 - 9	female	6491
+434	ZG	10 - 19	male	6608
+435	ZG	10 - 19	female	6280
+436	ZG	20 - 29	male	6790
+437	ZG	20 - 29	female	6398
+438	ZG	30 - 39	male	9523
+439	ZG	30 - 39	female	9081
+440	ZG	40 - 49	male	9900
+441	ZG	40 - 49	female	9555
+442	ZG	50 - 59	male	11011
+443	ZG	50 - 59	female	10060
+444	ZG	60 - 69	male	7529
+445	ZG	60 - 69	female	7120
+446	ZG	70 - 79	male	4958
+447	ZG	70 - 79	female	5354
+448	ZG	80+	male	2602
+449	ZG	80+	female	3707
+450	ZH	0 - 9	male	84067
+451	ZH	0 - 9	female	80064
+452	ZH	10 - 19	male	75553
+453	ZH	10 - 19	female	70925
+454	ZH	20 - 29	male	94945
+455	ZH	20 - 29	female	90208
+456	ZH	30 - 39	male	129973
+457	ZH	30 - 39	female	126397
+458	ZH	40 - 49	male	118302
+459	ZH	40 - 49	female	113947
+460	ZH	50 - 59	male	114434
+461	ZH	50 - 59	female	109218
+462	ZH	60 - 69	male	76698
+463	ZH	60 - 69	female	80770
+464	ZH	70 - 79	male	55317
+465	ZH	70 - 79	female	64844
+466	ZH	80+	male	30956
+467	ZH	80+	female	48044
+468	FL	0 - 9	male	1981
+469	FL	0 - 9	female	1803
+470	FL	10 - 19	male	2022
+471	FL	10 - 19	female	1855
+472	FL	20 - 29	male	2253
+473	FL	20 - 29	female	2230
+474	FL	30 - 39	male	2503
+475	FL	30 - 39	female	2507
+476	FL	40 - 49	male	2683
+477	FL	40 - 49	female	2745
+478	FL	50 - 59	male	3194
+479	FL	50 - 59	female	3240
+480	FL	60 - 69	male	2440
+481	FL	60 - 69	female	2544
+482	FL	70 - 79	male	1668
+483	FL	70 - 79	female	1778
+484	FL	80+	male	624
+485	FL	80+	female	985
+486	CH	0 - 9	male	454093
+487	CH	0 - 9	female	429811
+488	CH	10 - 19	male	441637
+489	CH	10 - 19	female	417357
+490	CH	20 - 29	male	527299
+491	CH	20 - 29	female	500433
+492	CH	30 - 39	male	634801
+493	CH	30 - 39	female	620156
+494	CH	40 - 49	male	606697
+495	CH	40 - 49	female	598842
+496	CH	50 - 59	male	654348
+497	CH	50 - 59	female	645664
+498	CH	60 - 69	male	487836
+499	CH	60 - 69	female	503381
+500	CH	70 - 79	male	347918
+501	CH	70 - 79	female	396531
+502	CH	80+	male	183574
+503	CH	80+	female	288413
+504	CHFL	0 - 9	male	456074
+505	CHFL	0 - 9	female	431614
+506	CHFL	10 - 19	male	443659
+507	CHFL	10 - 19	female	419212
+508	CHFL	20 - 29	male	529552
+509	CHFL	20 - 29	female	502663
+510	CHFL	30 - 39	male	637304
+511	CHFL	30 - 39	female	622663
+512	CHFL	40 - 49	male	609380
+513	CHFL	40 - 49	female	601587
+514	CHFL	50 - 59	male	657542
+515	CHFL	50 - 59	female	648904
+516	CHFL	60 - 69	male	490276
+517	CHFL	60 - 69	female	505925
+518	CHFL	70 - 79	male	349586
+519	CHFL	70 - 79	female	398309
+520	CHFL	80+	male	184198
+521	CHFL	80+	female	289398

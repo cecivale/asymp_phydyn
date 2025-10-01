@@ -1,0 +1,51 @@
+analyses:
+  simulation:
+    sim_2types_3p:
+      xml: "resources/beast_xmls/sim/2types_3params_armyscreening.xml"
+      trace: "../2_asymp_phydyn/results/analysis/phydyn_asymp_symp_3p_srln/asymp_symp200_male2029.0.log"
+      trees: "../2_asymp_phydyn/results/analysis/phydyn_asymp_symp_3p_srln/asymp_symp200_male2029.0.ds.trees"
+      sampling_details: "../3_asymp_phydyn/results/report/phydyn_asymp_symp_3p_srln/sampling_details/asymp_symp200_male2029.0.tsv"
+      burnin: 0.1
+      median: TRUE
+      min_tips: 50
+      max_tips: 350
+      xml_params:
+        n_sims: 500
+        n1: 0.0
+        n2: 1.0
+        min_sample1: 0.0
+        min_sample2: 0.0
+
+    sim_2types_3p_hp:
+      xml: "resources/beast_xmls/sim/2types_3params_armyscreening.xml"
+      trace: "../2_asymp_phydyn/results/analysis/phydyn_asymp_symp_3p_srln/asymp_symp200_male2029.0.log"
+      trees: "../2_asymp_phydyn/results/analysis/phydyn_asymp_symp_3p_srln/asymp_symp200_male2029.0.ds.trees"
+      sampling_details: "../3_asymp_phydyn/results/report/phydyn_asymp_symp_3p_srln/sampling_details/asymp_symp200_male2029.0.tsv"
+      burnin: 0.1
+      median: FALSE
+      min_tips: 200
+      max_tips: 300
+      xml_params:
+        n_sims: 500
+        n1: 0.0
+        n2: 1.0
+        min_sample1: 0.0
+        min_sample2: 0.0
+
+  inference:
+    model3p_symp_asymp:
+      xml: "resources/beast_xmls/inference/model3p_asymp_symp.xml"
+      chain_length: 20000000
+      log_every: 2000
+
+    model3p_symp_asymp_unif:
+      xml: "resources/beast_xmls/inference/model3p_asymp_symp_unif.xml"
+      chain_length: 20000000
+      log_every: 2000
+
+
+    model3p_symp_asymp_oneonx:
+      xml: "resources/beast_xmls/inference/model3p_asymp_symp_oneonx.xml"
+      chain_length: 20000000
+      log_every: 2000
+

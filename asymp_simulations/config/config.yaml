@@ -1,0 +1,29 @@
+# ------------------------------------------------------------------------------
+#          ---        
+#        / o o \    Project:  cov-armee
+#        V\ Y /V    Config file BEAST2 tree simulation + inference analyses
+#    (\   / - \     
+#     )) /    |     
+#     ((/__) ||     Code by Ceci VA 
+# ------------------------------------------------------------------------------
+
+run:
+  siminf_asymp_symp: 
+    simulation: 
+      - "sim_2types_3p"
+      # - "sim_2types_3p_hp"
+    inference:
+      # - "model3p_symp_asymp"
+      # - "model3p_symp_asymp_unif"
+      - "model3p_symp_asymp_oneonx"
+beast:
+  command_sim: "beast"
+  command_inf: "beast"
+  action: "overwrite"
+  time: 7200
+  mem_mb: 4096
+  threads: 2
+
+config_analyses: "config/analyses.yaml"
+
+

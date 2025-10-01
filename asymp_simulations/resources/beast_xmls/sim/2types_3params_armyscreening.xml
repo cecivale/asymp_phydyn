@@ -1,0 +1,91 @@
+<!-- Simulation MTBD -->
+
+<beast version="2.0" 
+    namespace="beast.base.inference.parameter
+               :beast.base.inference
+               :remaster
+               :feast.expressions">
+  
+<parameter id="birthRate_type1" value="$(birth_type1_0) $(birth_type1_1) $(birth_type1_2) $(birth_type1_3)"/>
+<parameter id="f_type2" spec="RealParameter" value="$(f_type2)"/>
+<parameter id="p_type1" spec="RealParameter" value="$(p_type1)"/>
+
+<parameter id="birthRate_type2" spec="ExpCalculator" value="birthRate_type1*f_type2*(1/p_type1 -1)">
+    <arg idref="birthRate_type1"/>
+    <arg idref="f_type2"/>
+    <arg idref="p_type1"/>
+</parameter>
+
+<parameter id="birthRate_type1type2" spec="ExpCalculator" value="birthRate_type1*(1/p_type1 -1)">
+    <arg idref="birthRate_type1"/>
+    <arg idref="p_type1"/>
+</parameter>
+
+<parameter id="birthRate_type2type1" spec="ExpCalculator" value="birthRate_type1*f_type2">
+    <arg idref="birthRate_type1"/>
+    <arg idref="f_type2"/>
+</parameter>
+
+<parameter id="deathRate_type1" spec="RealParameter" value="$(death_type1)"/>
+<parameter id="deathRate_type2" spec="RealParameter" value="$(death_type2)"/>
+
+<parameter id="rhoSampling_type11" spec="RealParameter" value="$(rho_type1_0)"/>
+<parameter id="rhoSampling_type12" spec="RealParameter" value="$(rho_type1_1)"/>
+<parameter id="rhoSampling_type13" spec="RealParameter" value="$(rho_type1_2)"/>
+<parameter id="sampling_type2" spec="RealParameter" value="0 $(sampling_type2)"/>
+
+
+  <run spec="Simulator" nSims="$(n_sims)">
+        <simulate spec="SimulatedTree" id="tree" maxRetries = "100">
+            <trajectory spec="StochasticTrajectory" id="traj"
+                maxTime="$(sim_time)" mustHave="sample11+sample12+sample13&gt;$(min_sample1) &amp;&amp; sample2&gt;$(min_sample2)">
+
+                <population spec="RealParameter" id="type1" value="$(n1)"/>
+                <population spec="RealParameter" id="type2" value="$(n2)"/>
+                
+                <samplePopulation spec="RealParameter" id="sample11" value="0"/>
+                <samplePopulation spec="RealParameter" id="sample12" value="0"/>
+                <samplePopulation spec="RealParameter" id="sample13" value="0"/>
+                <samplePopulation spec="RealParameter" id="sample2" value="0"/>
+
+                <reaction spec="Reaction" id="b1" rate="@birthRate_type1" changeTimes="$(birth_changetime1) $(birth_changetime2) $(birth_changetime3)"> type1 -> 2type1 </reaction>
+                <reaction spec="Reaction" id="b12" rate="@birthRate_type1type2" changeTimes="$(birth_changetime1) $(birth_changetime2) $(birth_changetime3)"> type1 -> type1 + type2 </reaction>
+                <reaction spec="Reaction" id="b2" rate="@birthRate_type2" changeTimes="$(birth_changetime1) $(birth_changetime2) $(birth_changetime3)"> type2 -> 2type2 </reaction>
+                <reaction spec="Reaction" id="b21" rate="@birthRate_type2type1" changeTimes="$(birth_changetime1) $(birth_changetime2) $(birth_changetime3)"> type2 -> type2 + type1 </reaction>
+                
+                <reaction spec="Reaction" id="d1" rate="@deathRate_type1"> type1 -> 0 </reaction>
+                <reaction spec="Reaction" id="d2" rate="@deathRate_type2"> type2 -> 0 </reaction>
+
+                <reaction spec="PunctualReaction" id="s11" p="@rhoSampling_type11" times="$(rho_time1)"> type1 -> sample11 </reaction>
+                <reaction spec="PunctualReaction" id="s12" p="@rhoSampling_type12" times="$(rho_time2)"> type1 -> sample12 </reaction>
+                <reaction spec="PunctualReaction" id="s13" p="@rhoSampling_type13" times="$(rho_time3)"> type1 -> sample13 </reaction>
+                <reaction spec="Reaction" id="s2" rate="@sampling_type2"  changeTimes="$(sampling_changetime)"> type2 -> sample2 </reaction>
+
+
+            </trajectory>
+        </simulate>
+
+<!--         <logger spec="Logger" fileName="$(file_name).traj">
+            <log idref="traj"/>
+        </logger> -->
+
+        <logger spec="Logger" mode="tree" fileName="$(file_name).trees">
+            <log spec="TypedTreeLogger" tree="@tree" removeSingletonNodes="true" noLabels="true"/>
+        </logger>
+
+        <logger spec="Logger">
+            <log spec="beast.base.evolution.tree.TreeStatLogger" tree="@tree"/>
+        </logger>
+
+         <logger spec="Logger" fileName="$(file_name).log">
+            <log spec="beast.base.evolution.tree.TreeStatLogger" tree="@tree"/>
+            <log idref="birthRate_type1"/>
+            <log idref="f_type2"/>
+            <log idref="p_type1"/>
+            <log idref="birthRate_type2"/>
+            <log idref="birthRate_type1type2"/>
+            <log idref="birthRate_type2type1"/>
+        </logger>
+
+    </run>
+</beast>

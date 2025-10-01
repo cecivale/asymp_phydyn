@@ -1,0 +1,99 @@
+datasets:
+
+  asymp_symp200_male2029:
+    replicates: 4
+    align: false # already aligned from LAPIS
+    mask: true
+    structure: 
+      asymp:
+        metadata: "results/data/all/metadata.tsv"
+        sequences: "lapis"
+        select:
+          qc: "TRUE"
+          army: "TRUE"
+          screening: "TRUE"
+          sex: "Männlich"
+          age_cat10: "20-29"
+        subsample:
+          n: -1 # all
+          method: "groups"
+          grouping_var: "division"
+      symp:
+        metadata: "results/data/all/metadata.tsv"
+        sequences: "lapis"
+        select:
+          qc: "TRUE"
+          army: "FALSE"
+          sex: "Männlich"
+          age_cat10: "20-29"
+          dateFrom: "2021-01-01"
+          dateTo: "2021-02-24"
+        subsample:
+          n: 200 
+          method: "groups"
+          grouping_var: "division"
+
+  asymp_male2029_symp200_all:
+    replicates: 1
+    align: false # already aligned from LAPIS
+    mask: true
+    structure: 
+      asymp:
+        metadata: "results/data/all/metadata.tsv"
+        sequences: "lapis"
+        select:
+          qc: "TRUE"
+          army: "TRUE"
+          screening: "TRUE"
+          sex: "Männlich"
+          age_cat10: "20-29"
+        subsample:
+          n: -1 # all
+          method: "groups"
+          grouping_var: "division"
+      symp:
+        metadata: "results/data/all/metadata.tsv"
+        sequences: "lapis"
+        select:
+          qc: "TRUE"
+          army: "FALSE"
+          sex: "Männlich"
+          dateFrom: "2021-01-01"
+          dateTo: "2021-02-24"
+        subsample:
+          n: 200 
+          method: "groups"
+          grouping_var: "division"
+
+  asymp_symp200_maleall:
+    replicates: 1
+    align: false # already aligned from LAPIS
+    mask: true
+    structure: 
+      asymp:
+        metadata: "results/data/all/metadata.tsv"
+        sequences: "lapis"
+        select:
+          qc: "TRUE"
+          army: "TRUE"
+          screening: "TRUE"
+          sex: "Männlich"
+        subsample:
+          n: -1 # all
+          method: "groups"
+          grouping_var: "division"
+      symp:
+        metadata: "results/data/all/metadata.tsv"
+        sequences: "lapis"
+        select:
+          qc: "TRUE"
+          army: "FALSE"
+          sex: "Männlich"
+          dateFrom: "2021-01-01"
+          dateTo: "2021-02-24"
+        subsample:
+          n: 200 
+          method: "groups"
+          grouping_var: "division"
+
+

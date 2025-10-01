@@ -1,0 +1,145 @@
+# ------------------------------------------------------------------------------
+#          ---        
+#        / o o \    Project:  cov-armee Phylodynamics
+#        V\ Y /V    BEAST2 posterior predicitive simulation and inference workflow
+#    (\   / - \     
+#     )) /    |     
+#     ((/__) ||     Code by Ceci VA 
+# ------------------------------------------------------------------------------
+
+from Bio import Phylo
+import pandas as pd
+configfile: "config/config.yaml"
+configfile: "config/analyses.yaml" 
+
+
+def _get_analysis_param(wildcards, stage, param):
+    if stage == "inference" :
+        return config["analyses"][stage][wildcards.inference].get(param, config["beast"].get(param))
+    if stage == "simulation":
+        return config["analyses"][stage][wildcards.simulation].get(param, config["beast"].get(param))
+
+
+def _get_chains(wildcards):
+    checkpoint_output = checkpoints.filter_trees_and_get_mrs.get(**wildcards).output[0]
+    ids = glob_wildcards(os.path.join(checkpoint_output + "/" + wildcards.simulation + ".{n}.txt")).n
+    chains = expand("results/{{project}}/inference/{{simulation}}.{{inference}}.{n}.{{seed}}.log", n = ids)
+    return chains
+
+PROJECTS = config["run"].keys()
+SEED = 24
+all_files = []
+for project in PROJECTS:
+    analyses_sim = config["run"][project]["simulation"]
+    for simulation in analyses_sim:
+        analyses_inf = config["run"][project]["inference"]
+        for inference in analyses_inf:
+            all_files += expand("results/" + project +"/" + simulation + "." + inference + "." + "{seed_sim}.fig_validation_ggplot.pdf", seed_sim = SEED)
+            all_files += expand("results/" + project +"/" + simulation + "." + inference + "." + "{seed_sim}.supfig_treestats_ggplot.pdf", seed_sim = SEED)
+            all_files += expand("results/" + project +"/" + simulation + "." + inference + "." + "{seed_sim}.supfig_coverage_ggplot.pdf", seed_sim = SEED)
+
+rule all:
+    input:
+        all_files
+
+rule write_xml_paramsf:
+    output: 
+        xml_paramsf = "results/{project}/{simulation}_params.json"
+    params:
+        burnin =  lambda wildcards: _get_analysis_param(wildcards, "simulation", "burnin"),
+        trace = lambda wildcards:  _get_analysis_param(wildcards, "simulation", "trace"),
+        median = lambda wildcards:  _get_analysis_param(wildcards, "simulation", "median"),
+        sampling_details = lambda wildcards:  _get_analysis_param(wildcards, "simulation", "sampling_details"),
+    script:
+        "scripts/get_xml_params.R"
+
+
+rule simulate:
+    input:
+        xml_sim = lambda wildcards: _get_analysis_param(wildcards, "simulation", "xml"), 
+        xml_paramsf = "results/{project}/{simulation}_params.json",
+    output:
+        trees = "results/{project}/sim/{simulation}.trees"
+    params:
+        seed = 24,
+        beast_command = lambda wildcards: _get_analysis_param(wildcards, "simulation", "command_sim"), 
+        action = lambda wildcards: _get_analysis_param(wildcards, "simulation", "action"),
+        xml_params = lambda wildcards: str(_get_analysis_param(wildcards, "simulation", "xml_params")).replace(":", "=").replace(
+            "{", "\"").replace("}", "\"").replace(" ", "").replace("'", ""),
+        file_name = lambda wildcards: "results/" + wildcards.project + "/sim/" + wildcards.simulation
+    shell:
+        """
+        {params.beast_command} \
+        -D {params.xml_params} \
+        -D file_name={params.file_name} \
+        -DF {input.xml_paramsf} \
+        -DFout  /dev/null \
+        -seed {params.seed} \
+        -statefile {params.file_name}.state \
+        -{params.action} {input.xml_sim} 
+        """
+
+
+checkpoint filter_trees_and_get_mrs:
+    input:
+        trees = rules.simulate.output.trees
+    output:
+        directory("results/{project}/sim/mrs_{simulation}/")
+    params:
+        out_file = "results/{project}/sim/mrs_{simulation}/{simulation}.",
+        min_tips = lambda wildcards: _get_analysis_param(wildcards, "simulation", "min_tips"), 
+        max_tips = lambda wildcards: _get_analysis_param(wildcards, "simulation", "max_tips"), 
+    script:
+        "scripts/filter_trees.R"
+
+rule inference:
+    input:
+        xml_inf = lambda wildcards: _get_analysis_param(wildcards, "inference", "xml"), 
+        mrs_dir = directory("results/{project}/sim/mrs_{simulation}/"),
+        trees = rules.simulate.output.trees,
+        xml_paramsf = "results/{project}/{simulation}_params.json"
+    output:
+        trace = "results/{project}/inference/{simulation}.{inference}.{n}.{seed}.log"
+    params:
+        beast_command = lambda wildcards: _get_analysis_param(wildcards, "inference", "command_inf"), 
+        action = lambda wildcards: _get_analysis_param(wildcards, "inference", "action"),
+        chain_length = lambda wildcards: _get_analysis_param(wildcards, "inference", "chain_length"),
+        log_every = lambda wildcards: _get_analysis_param(wildcards, "inference", "log_every"),
+        xml_params = lambda wildcards: str(_get_analysis_param(wildcards, "inference", "xml_params")).replace(":", "=").replace(
+            "{", "\"").replace("}", "\"").replace(" ", "").replace("'", ""),
+        file_name = lambda wildcards: "results/" + wildcards.project + "/inference/" + wildcards.simulation + "." + wildcards.inference + "." + wildcards.n +"." + wildcards.seed
+    threads:
+        lambda wildcards: _get_analysis_param(wildcards, "inference", "threads"),
+    resources:
+        runtime = lambda wildcards: _get_analysis_param(wildcards, "inference", "time"),
+        mem_per_cpu = lambda wildcards: _get_analysis_param(wildcards,  "inference", "mem_mb")
+    shell:
+        """
+        MRS=$(<results/{wildcards.project}/sim/mrs_{wildcards.simulation}/{wildcards.simulation}.{wildcards.n}.txt)
+
+        {params.beast_command} \
+        -D tree_file={input.trees} \
+        -D tree_index={wildcards.n} \
+        -D mrs=$MRS \
+        -D {params.xml_params} \
+        -DF {input.xml_paramsf} \
+        -DFout  /dev/null \
+        -D chain_length={params.chain_length} \
+        -D log_every={params.log_every} \
+        -D file_name={params.file_name} \
+        -statefile {params.file_name}.state \
+        -{params.action} {input.xml_inf} 
+        """
+
+rule to_figures:
+    input:
+        empirical_trees = lambda wildcards: _get_analysis_param(wildcards, "simulation", "trees"), 
+        sim_trees = rules.simulate.output.trees,
+        trace_files = _get_chains
+    output:
+        supfig_treestats = "results/{project}/{simulation}.{inference}.{seed}.supfig_treestats_ggplot.pdf",
+        supfig_coverage = "results/{project}/{simulation}.{inference}.{seed}.supfig_coverage_ggplot.pdf",
+        fig_validation = "results/{project}/{simulation}.{inference}.{seed}.fig_validation_ggplot.pdf"
+    script:
+        "scripts/validation_figures.R"
+
