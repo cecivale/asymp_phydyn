@@ -1,0 +1,3 @@
+[submodule "asymp_saf_phydyn/workflow/snakemake-phylo-beast2"]
+	path = asymp_saf_phydyn/workflow/snakemake-phylo-beast2
+	url = https://github.com/cecivale/snakemake-phylo-beast2.git

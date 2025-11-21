@@ -129,7 +129,7 @@ screening_m2029_table1 <- metadata_screening %>%
                         high_ct75 = quantile(ct, 0.75, na.rm = TRUE),
                         `CT value (IQR)` = paste0(median_ct, " (", 
                                                   low_ct25, "-", high_ct75, " )"))) %>%
-  select(1:3, 7)
+  select(1:4, 8)
 #left_join(screening_weeks, join_by(screening_week)) %>% 
 #mutate(positivity = positive_tests / screening_tests,
 #       positivity_pdf = positive_tests / screening_tests_pdf)
@@ -150,7 +150,7 @@ screening_presymp_table1 <- metadata_screening %>%
                         high_ct75 = quantile(ct, 0.75, na.rm = TRUE),
                         `CT value (IQR)` = paste0(median_ct, " (", 
                                                   low_ct25, "-", high_ct75, " )"))) %>%
-  select(1:4, 8)
+  select(1:3, 7)
 
 screening_presymp_m2029_table1 <- metadata_screening %>% 
   filter(sex == "Männlich", age_cat10 == "20-29", presymp)  %>% 
@@ -171,7 +171,7 @@ screening_presymp_m2029_table1 <- metadata_screening %>%
 
 # Community
 p_community <- cross_join(tests_bysex_w %>% 
-                            filter(datum >= 202101, datum <= 202108) %>% 
+                            filter(datum >= 202101, datum <= 202108, geoRegion == "CH") %>% 
                             group_by(sex) %>% summarise(entries = sum(entries),
                                                         entries_pos = sum(entries_pos)) %>%
                             ungroup() %>%
@@ -179,7 +179,7 @@ p_community <- cross_join(tests_bysex_w %>%
                                    sex_pp = entries_pos/sum(entries_pos)) %>% 
                             select(sex, sex_p, sex_pp),
                           tests_byage_w %>% 
-                            filter(datum >= 202101, datum <= 202108) %>% 
+                            filter(datum >= 202101, datum <= 202108, geoRegion == "CH") %>% 
                             group_by(altersklasse_covid19) %>% 
                             summarise(entries = sum(entries),
                                       entries_pos = sum(entries_pos)) %>%
@@ -193,7 +193,7 @@ p_community <- cross_join(tests_bysex_w %>%
 community_table1 <- bind_cols(
   tibble(category = "Community"),
   tests_bysex_w %>% 
-    filter(datum >= 202101, datum <= 202108) %>%
+    filter(datum >= 202101, datum <= 202108, geoRegion == "CH") %>%
     summarise(`RT-PCR tests` = sum(entries),
               `Positive RT-PCR tests`  = sum(entries_pos),
               `RT-PCR positivity` = paste0(round(`Positive RT-PCR tests`/`RT-PCR tests` * 100, 2), "%")),
@@ -208,7 +208,7 @@ community_table1 <- bind_cols(
 community_m2029_table1 <- bind_cols(
   tibble(category = "Community men 20-29"),
   tests_byage_w %>% 
-    filter(datum >= 202101, datum <= 202108, altersklasse_covid19 == "20 - 29") %>%
+    filter(datum >= 202101, datum <= 202108, altersklasse_covid19 == "20 - 29", geoRegion == "CH") %>%
     summarise(`RT-PCR tests` = round(sum(entries) * p_community$sex_p),
               `Positive RT-PCR tests`  = round(sum(entries_pos) * p_community$sex_pp),
               `RT-PCR positivity` = paste0(round(`Positive RT-PCR tests`/`RT-PCR tests` * 100, 2), "%")),
@@ -224,7 +224,7 @@ community_m2029_table1 <- bind_cols(
 community_m_table1 <- bind_cols(
   tibble(category = "Community men"),
   tests_bysex_w %>% 
-    filter(datum >= 202101, datum <= 202108, sex == "male") %>%
+    filter(datum >= 202101, datum <= 202108, sex == "male", geoRegion == "CH") %>%
     summarise(`RT-PCR tests` = sum(entries),
               `Positive RT-PCR tests`  = sum(entries_pos),
               `RT-PCR positivity` = paste0(round(`Positive RT-PCR tests`/`RT-PCR tests` * 100, 2), "%")),
@@ -240,7 +240,7 @@ community_m_table1 <- bind_cols(
 community_2029_table1 <- bind_cols(
   tibble(category = "Community 20-29"),
   tests_byage_w %>% 
-    filter(datum >= 202101, datum <= 202108, altersklasse_covid19 == "20 - 29") %>%
+    filter(datum >= 202101, datum <= 202108, altersklasse_covid19 == "20 - 29", geoRegion == "CH") %>%
     summarise(`RT-PCR tests` = sum(entries),
               `Positive RT-PCR tests`  = sum(entries_pos),
               `RT-PCR positivity` = paste0(round(`Positive RT-PCR tests`/`RT-PCR tests` * 100, 2), "%")),
@@ -802,4 +802,4 @@ if (!debugging) {
 #                            kof_stringencyidx = "resources/ext_kof_stringencyidx.csv"),
 #                  output = c(table1 = "results/report/numbers.tex",
 #                             fig1 = "results/report/fig1_ggplot.pdf"))
-
+# 
