@@ -12,6 +12,7 @@ datasets:
           qc: "TRUE"
           army: "TRUE"
           screening: "TRUE"
+          presymp: "FALSE"
           sex: "Männlich"
           age_cat10: "20-29"
         subsample:
@@ -45,6 +46,7 @@ datasets:
           qc: "TRUE"
           army: "TRUE"
           screening: "TRUE"
+          presymp: "FALSE"
           sex: "Männlich"
           age_cat10: "20-29"
         subsample:
@@ -77,6 +79,7 @@ datasets:
           qc: "TRUE"
           army: "TRUE"
           screening: "TRUE"
+          presymp: "FALSE"
           sex: "Männlich"
         subsample:
           n: -1 # all
@@ -95,5 +98,4 @@ datasets:
           n: 200 
           method: "groups"
           grouping_var: "division"
-
 

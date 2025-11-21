@@ -54,13 +54,15 @@ study_period <- interval(ymd(study_from), ymd(study_to))
 
 #   a. Read files
 metadata_screening <- metadata %>%
-  filter(army, screening, sim_date) %>%
+  filter(army, #sim_date,
+         screening) %>%
   mutate(deme = "screening") 
 
 metadata_community <- metadata %>%
   filter(!army, 
          #sex == "Männlich", age_cat10 == "20-29", 
-         sim_date, date >= study_from, date <= study_to) %>%
+         #sim_date,
+         date >= study_from, date <= study_to) %>%
   mutate(deme = "community") 
 
 nrow(metadata_screening)
@@ -72,8 +74,8 @@ screening_table1_byweek <- metadata_screening %>%
   left_join(metadata_screening %>% filter(qc) %>%
               count(screening_week, name = "sequences")) %>%
   left_join(screening_weeks, join_by(screening_week)) %>% 
-  mutate(positivity = positive_tests / screening_tests,
-         positivity_pdf = positive_tests / screening_tests_pdf)
+  mutate(positivity = positive_tests / screening_tests_final,
+         positivity_aprox = positive_tests / screening_tests)
 
 # We assume the positivity calculated for 18-30 years old to be valid for the 20-29 age category
 # We cannot calculate positivity 20-29 men because we do not have the data of how many tests were
@@ -99,7 +101,7 @@ metadata_screening %>% filter(sex == "Männlich") %>% count(age_cat10) %>% mutat
 # Screening
 screening_table1 <- screening_table1_byweek %>%
   summarise(category = "SAF screening",
-            `RT-PCR tests` = sum(screening_tests),
+            `RT-PCR tests` = sum(screening_tests_final),
             `Positive RT-PCR tests` = sum(positive_tests),
             `RT-PCR positivity` = paste0(round(`Positive RT-PCR tests`/`RT-PCR tests` * 100, 2), "%"),
             `% men 20-29 age group` = paste0(sexage_p %>% filter(sex == "Männlich", age_cat10 == "20-29") %>% pull(p) * 100, "%"),
@@ -127,10 +129,45 @@ screening_m2029_table1 <- metadata_screening %>%
                         high_ct75 = quantile(ct, 0.75, na.rm = TRUE),
                         `CT value (IQR)` = paste0(median_ct, " (", 
                                                   low_ct25, "-", high_ct75, " )"))) %>%
-  select(1:4, 8)
+  select(1:3, 7)
 #left_join(screening_weeks, join_by(screening_week)) %>% 
 #mutate(positivity = positive_tests / screening_tests,
 #       positivity_pdf = positive_tests / screening_tests_pdf)
+
+screening_presymp_table1 <- metadata_screening %>% 
+  #filter(sex == "Männlich", age_cat10 == "20-29")  %>% 
+  filter(presymp) %>%
+  count(name = "Positive RT-PCR tests") %>%
+  #mutate(`% men 20-29 age group` = "100%") %>%
+  mutate(category = "SAF screening presymp") %>%
+  bind_cols(metadata_screening %>% 
+              filter(presymp, qc) %>%
+              count(name = "Viral Genetic Sequences")) %>%
+  bind_cols(metadata_screening %>% 
+              filter(presymp)  %>% 
+              summarise(median_ct = median(ct, na.rm = TRUE),
+                        low_ct25 = quantile(ct, 0.25, na.rm = TRUE),
+                        high_ct75 = quantile(ct, 0.75, na.rm = TRUE),
+                        `CT value (IQR)` = paste0(median_ct, " (", 
+                                                  low_ct25, "-", high_ct75, " )"))) %>%
+  select(1:4, 8)
+
+screening_presymp_m2029_table1 <- metadata_screening %>% 
+  filter(sex == "Männlich", age_cat10 == "20-29", presymp)  %>% 
+  count(name = "Positive RT-PCR tests") %>%
+  mutate(`% men 20-29 age group` = "100%") %>%
+  mutate(category = "SAF screening men 20-29") %>%
+  bind_cols(metadata_screening %>% 
+              filter(sex == "Männlich", age_cat10 == "20-29", presymp, qc) %>%
+              count(name = "Viral Genetic Sequences")) %>%
+  bind_cols(metadata_screening %>% 
+              filter(sex == "Männlich", age_cat10 == "20-29", presymp)  %>% 
+              summarise(median_ct = median(ct, na.rm = TRUE),
+                        low_ct25 = quantile(ct, 0.25, na.rm = TRUE),
+                        high_ct75 = quantile(ct, 0.75, na.rm = TRUE),
+                        `CT value (IQR)` = paste0(median_ct, " (", 
+                                                  low_ct25, "-", high_ct75, " )"))) %>%
+  select(1:4, 8)
 
 # Community
 p_community <- cross_join(tests_bysex_w %>% 
@@ -249,7 +286,9 @@ active_infections_d <- active_infections %>%
                                     iso_week == 6 & year(date) == 2021 ~ 3,
                                     TRUE ~ NA)) 
 
-positivity <- as.numeric(gsub("%", "", table1[[3,2]])) / 100
+positivity_saf <- as.numeric(gsub("%", "", table1[[3,2]])) / 100
+positivity_asymp <-  (screening_table1 %>% pull(3) - screening_presymp_table1 %>% pull(1)) / as.numeric(table1[[1,2]]) 
+positivity_presymp <- screening_presymp_table1 %>% pull(1) / as.numeric(table1[[1,2]])
 
 active_infections_w <- active_infections_d %>%
   filter(!is.na(screening_week)) %>%
@@ -262,7 +301,10 @@ active_infections_w <- active_infections_d %>%
 
 active_reported <- active_infections_w %>%
   mutate(nosymp_pop = pop_men2029 - symptoms_active,
-         nosymp_infections = nosymp_pop * positivity,
+         nosymp_infections = nosymp_pop * positivity_saf,
+         asymp_infections = nosymp_pop * positivity_asymp,
+         presymp_infections = nosymp_pop * positivity_presymp,
+         symp_infections_nopre = positive_active - presymp_infections,
          asymp_active = nosymp_infections - presymp_active,
          positive_active_nopre = positive_active - presymp_active) 
 
@@ -273,21 +315,30 @@ active_reported <- active_infections_w %>%
 active_ur2.3 <- active_infections_w %>%  
   mutate(across(-screening_week, ~ .x * 2.3),
          nosymp_pop = pop_men2029 - symptoms_active,
-         nosymp_infections = nosymp_pop * positivity,
+         nosymp_infections = nosymp_pop * positivity_saf,
+         asymp_infections = nosymp_pop * positivity_asymp,
+         presymp_infections = nosymp_pop * positivity_presymp,
+         symp_infections_nopre = positive_active - presymp_infections,
          asymp_active = nosymp_infections - presymp_active,
          positive_active_nopre = positive_active - presymp_active)
 
 active_ur2.7 <- active_infections_w %>%  
   mutate(across(-screening_week, ~ .x * 2.7),
          nosymp_pop = pop_men2029 - symptoms_active,
-         nosymp_infections = nosymp_pop * positivity,
+         nosymp_infections = nosymp_pop * positivity_saf,
+         asymp_infections = nosymp_pop * positivity_asymp,
+         presymp_infections = nosymp_pop * positivity_presymp,
+         symp_infections_nopre = positive_active - presymp_infections,
          asymp_active = nosymp_infections - presymp_active,
          positive_active_nopre = positive_active - presymp_active)
 
 active_ur3.1 <- active_infections_w %>%  
   mutate(across(-screening_week, ~ .x * 3.1),
          nosymp_pop = pop_men2029 - symptoms_active,
-         nosymp_infections = nosymp_pop * positivity,
+         nosymp_infections = nosymp_pop * positivity_saf,
+         asymp_infections = nosymp_pop * positivity_asymp,
+         presymp_infections = nosymp_pop * positivity_presymp,
+         symp_infections_nopre = positive_active - presymp_infections,
          asymp_active = nosymp_infections - presymp_active,
          positive_active_nopre = positive_active - presymp_active)
 
@@ -297,21 +348,36 @@ active_w_ur <- bind_rows(
   active_ur2.7 %>% mutate(ur = "2.7x"),
   active_ur3.1 %>% mutate(ur = "3.1x"))
 
-# Proportion of infections being asymptomatic
+# Proportion of infections being asymptomatic (with deconvolution values for presymp)
 active_w_ur %>% group_by(ur) %>%
   summarise(median(asymp_active/(asymp_active + positive_active)))
+
+#  (using asymp screening positivity)
+active_w_ur %>% group_by(ur) %>%
+  summarise(median(asymp_infections/(asymp_infections + positive_active)))
 
 # Number of symp per asymp infection
 active_w_ur %>% group_by(ur) %>%
   summarise(median(asymp_active/positive_active))
+# (using asymp screening positivity)
+active_w_ur %>% group_by(ur) %>%
+  summarise(median(asymp_infections/positive_active))
 
 # Proportion of non symptomatic infections being pre symptomatic
 active_w_ur %>% group_by(ur) %>%
   summarise(median(presymp_active/nosymp_infections))
+active_w_ur %>% group_by(ur) %>%
+  summarise(median(presymp_infections/nosymp_infections))
+
+active_w_ur %>% group_by(ur) %>%
+  summarise(median(presymp_active/(asymp_active + positive_active)))
 
 # Prevalence of asymp
 active_w_ur %>% group_by(ur) %>%
   summarise(median(asymp_active/pop_men2029))
+
+active_w_ur %>% group_by(ur) %>%
+  summarise(median(asymp_infections/pop_men2029))
 
 # Prevalence of symp
 active_w_ur %>% group_by(ur) %>%
@@ -394,20 +460,21 @@ alpha_seqs <- lapis_query_by_id(database = "open",
                                                       variantQuery = "B.1.1.7*")) %>% 
   select(seq_id = genbankAccession, gisaidEpiIsl, genbankAccession, sraAccession, strain,
          date, division, pangoLineage,	nextstrainClade, 
-         originatingLab,  database) %>% distinct()
+         originatingLab,  database) %>% distinct() 
 
+#No alpha sequences that pass qc
 
-p3 <- metadata_screening %>% mutate(alpha_var = gisaid_id %in% alpha_seqs$gisaidEpiIsl,
-                                    qc = ifelse(gisaid_id %in% alpha_seqs$gisaidEpiIsl, T, qc)) %>%
+p3 <- metadata_screening %>% #mutate(alpha_var = gisaid_id %in% alpha_seqs$gisaidEpiIsl) %>%
+  filter(!presymp) %>% 
   ggplot() +
-  geom_bar(aes(order_date, fill = interaction(qc, alpha_var)), color = "white", size = 0.15) +
+  geom_bar(aes(order_date, fill = qc), color = "white", size = 0.15) +
   geom_vline(data = metadata_screening %>% filter(qc) %>% group_by(screening_week_bag) %>% summarise(med = median(date)),
              aes(xintercept = med), linetype = 2, linewidth = 0.4) +
   scale_x_date(limits = ymd(c("2020-12-25","2021-03-05")), 
                date_labels = "%b %d", name = "") +
   ylab("Positive RT-PCR\nSAF Screening samples") +
-  scale_fill_manual(values = c(pal_asympsymp[["asymp2"]], pal_asympsymp[["asymp"]], pal_asympsymp[["asymp"]]),
-                    labels = c("Not sequenced", "Sequenced", "Alpha Sequence"), name = "") +
+  scale_fill_manual(values = c(pal_asympsymp[["asymp2"]], pal_asympsymp[["asymp"]]),
+                    labels = c("Not sequenced", "Sequenced"), name = "") +
   theme_asympsymp() +
   theme(legend.position = "bottom")
 
@@ -415,7 +482,7 @@ p3
 
 # 4. Demographics
 
-p4 <- ggplot(bind_rows(metadata_community, metadata_screening) %>% 
+p4 <- ggplot(bind_rows(metadata_community, metadata_screening %>% filter(!presymp)) %>% 
                filter(sex != "Unbekannt", qc) %>%
                count(sex, deme, age_cat10) %>% #, qc) %>%
                group_by(deme) %>%
@@ -434,6 +501,7 @@ p4 <- ggplot(bind_rows(metadata_community, metadata_screening) %>%
   scale_pattern_manual(values = c("none", "stripe"), name = "") +
   ylab("Sex and Age category") +
   xlab("Sequences (%)") +
+  scale_x_continuous(limits=c(-.2,0.9), breaks = c(seq(-0.2, 0.8, 0.2))) +
   theme_asympsymp() +
   theme(legend.position = "top")
 
@@ -470,23 +538,26 @@ p5
 
 # 6. CT values plot ------------------------------------------------------------
 ct_df <- bind_rows(metadata_community %>% mutate(group = "All Community"), 
-                   metadata_screening %>% mutate(group = "SAF Screening"),
+                   metadata_screening %>% filter(presymp) %>% mutate(group = "SAF Screening\npresymp."),
+                   metadata_screening %>% filter(!presymp) %>% mutate(group = "SAF Screening\nasymp."),
                    metadata_community %>% filter(age_cat10 == "20-29", sex == "Männlich") %>% mutate(group = "Community\nmen 20-29"), 
                    #metadata_screening %>% filter(age_cat10 == "20-29", sex == "Männlich") %>% mutate(group = "screening_men2029")) 
 ) %>% filter(!is.na(ct)) %>%
   select(sample_number, qc, ct, deme, age_cat10, sex, group)
 
 test_results <- ggpubr::compare_means(ct ~ group, ct_df,  p.adjust.method = "BH")
-my_comparisons <- list( c("All Community", "SAF Screening"), c("All Community", "Community\nmen 20-29"), c("SAF Screening", "Community\nmen 20-29") )
+my_comparisons <- list( c("All Community", "SAF Screening\nasymp."), c("All Community", "SAF Screening\npresymp."), c("All Community", "Community\nmen 20-29"), 
+                        c("Community\nmen 20-29", "SAF Screening\nasymp."), c("Community\nmen 20-29", "SAF Screening\npresymp."), 
+                        c("SAF Screening\npresymp.", "SAF Screening\nasymp."))
 
 p6 <- ct_df  %>%
   ggplot(aes(group, ct, color = group)) +
   geom_violin(aes(fill = group), alpha = 0.4, position = position_dodge(0.9), color = "transparent") +
   geom_boxplot(aes(color = group, fill = group), width = 0.1,  position = position_dodge(0.9),
                outlier.shape = NA, alpha = 0.6) +
-  scale_fill_manual(values = c(pal_asympsymp[["grey"]], pal_asympsymp[["symp"]], pal_asympsymp[["asymp"]])) +
-  scale_color_manual(values = c("grey50", pal_asympsymp[["symp"]], pal_asympsymp[["asymp"]])) +
-  ggpubr::stat_compare_means(comparisons = my_comparisons, size = 2.5) + 
+  scale_fill_manual(values = c(pal_asympsymp[["grey"]], pal_asympsymp[["symp"]], pal_asympsymp[["asymp"]], pal_asympsymp[["asymp"]])) +
+  scale_color_manual(values = c("grey50", pal_asympsymp[["symp"]], pal_asympsymp[["asymp"]], pal_asympsymp[["asymp"]])) +
+  ggpubr::stat_compare_means(comparisons = my_comparisons, size = 2.5, p.adjust.method = "BH", label = "p.adj") + 
   theme_asympsymp() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
   ylab("") +
@@ -687,16 +758,16 @@ p8c
 
 # Arrange plots ----------------------------------------------------------------
 
-A <- p1 / p3 + plot_layout(heights = c(1.5, 1)) 
-B1 <- p7map / p8map
+A <- p1 / p3 + theme(legend.position = "top") + plot_layout(heights = c(1.5, 1)) 
+B1 <- (p7map + theme(legend.position = "none"))  / (p8map + theme(legend.position = "none") )
 #B2 <- ((p7a + theme(legend.position = "none")) / (p7b+ theme(legend.position = "none")) / (p8d+ theme(legend.position = "none"))) 
 C <- p4
-E <- p5 
+E <- p5 + theme(legend.position = "top") 
 D <- p6 + coord_flip()
 
 
-fig1 <- ((((A / NULL) + plot_layout(heights = c(1.5, 1, 1))  | B1) + plot_layout(widths = c(1.2, 1))) / ((C | (D / E)) + plot_layout(widths = c(1.5, 1)))) + plot_layout(heights = c(1.5,1)) +
-  plot_annotation(tag_levels = "A") + plot_layout(guides = "collect")
+fig1 <- ((A | B1) + plot_layout(widths = c(1, 1.2))) / (((D / E) + plot_layout(heights = c(2,1)) | C ) + plot_layout(widths = c(1, 1.5)))  +
+  plot_annotation(tag_levels = "A") #+ plot_layout(guides = "collect")
 
 
 #Save as PDF
@@ -731,6 +802,4 @@ if (!debugging) {
 #                            kof_stringencyidx = "resources/ext_kof_stringencyidx.csv"),
 #                  output = c(table1 = "results/report/numbers.tex",
 #                             fig1 = "results/report/fig1_ggplot.pdf"))
-# 
-# 
 
